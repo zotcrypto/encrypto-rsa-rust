@@ -13,7 +13,7 @@ End to End encryption (RSA e2ee) for multiple languages (cross-platform) and Val
 ## Implementation
 ### Cargo
 ```xml
-encrypto_rust = "0.2.0"
+encrypto_rust = "0.2.1"
 ```
 
 ## RSA
