@@ -13,7 +13,7 @@ End to End encryption (RSA e2ee) for multiple languages (cross-platform) and Val
 ## Implementation
 ### Cargo
 ```xml
-encrypto_rust = "0.1.0"
+encrypto_rust = "0.2.0"
 ```
 
 ## RSA
@@ -22,17 +22,17 @@ encrypto_rust = "0.1.0"
 ### RSA Init
 
 ```rust
-let encrypto = Encrypto::init(1024);
+let encrypto = EncryptoRSA::init(1024);
 ```
 ### RSA Encrypt
 ```rust
 let public_key = encrypto.get_public_key(); //returns PublicKey struct
 let msg = "Alo".to_string(); // sample message to be encrypted 
-let enc = Encrypto::encrypt_from_string(msg.clone(), public_key.clone()); // returns encrypted msg as base64 string
+let enc = e.encrypt_from_string(msg.clone(), public_key.clone()); // returns encrypted msg as base64 string
 
 Or
 
-let enc_from_bytes = Encrypto::encrypt_from_bytes(bytes, public_key); // returns encrypted bytes as base64 string
+let enc_from_bytes = e.encrypt_from_bytes(bytes, public_key); // returns encrypted bytes as base64 string
 
 ```
 
