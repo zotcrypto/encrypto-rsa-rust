@@ -1,0 +1,22 @@
+[package]
+name = "encrypto_rust"
+version = "0.1.0"
+edition = "2021"
+description = "stunning-encrypto is cross platform end-to-end encryption dependency."
+homepage = "https://zot.ssdd.dev/encrypto/"
+repository = "https://github.com/ssddcodes/stunning-encrypto/tree/rust"
+readme = "README.md"
+keywords = ["RSA", "end-to-end-encryptio", "stunning-encrypto", "encryption", "rust-e2ee"]
+categories = ["cryptography"]
+license = "MIT"
+
+[dependencies]
+rand = "0.8.5"
+num-traits = "0.2.15"
+num = { version = "0.4.0", default-features = false }
+num-integer = "0.1.45"
+num-bigint = { version = "0.4.3", features = ["rand", "serde"] }
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = {version = "1.0.87"}
+base64 = "0.13.1"
+#libaes = "0.6.4"
