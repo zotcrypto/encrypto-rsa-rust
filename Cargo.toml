@@ -1,5 +1,5 @@
 [package]
-name = "encrypto_rust"
+name = "encrypto_rsa"
 version = "0.2.0"
 edition = "2021"
 description = "stunning-encrypto is cross platform end-to-end encryption dependency."
