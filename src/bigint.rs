@@ -15,46 +15,7 @@ pub use bigint::{BigUint,RandBigInt};
 // NIST recomends 5 rounds for miller rabin. This implementation does 8. Apple uses 16. Three iterations has a probability of 2^80 of failing
 const MILLER_RABIN_ROUNDS: usize = 8usize;
 
-
-/// # Generator
-/// This is the most commonly used struct. It is used to generate:
-/// - Large Unsigned Integers
-/// - Composite Numbers
-/// - Prime Numbers
-/// - Safe Primes
-///
-/// ```
-///
-/// use num_primes::{Generator,Verification};
-///
-/// fn main(){
-///     let prime = Generator::new_prime(512);
-///     let _uint = Generator::new_uint(1024);
-///
-///     // p = 2q + 1 || where p is safe prime
-///     let _safe_prime = Generator::safe_prime(64);
-///
-///     let _ver: bool = Verification::is_prime(&prime);
-/// }
-/// ```
 pub struct Generator;
-/// # Prime Verification
-/// This struct is used to verify whether integers are prime, safe prime, or composite.
-///
-/// ```
-/// use num_primes::{Generator,Verification};
-///
-/// fn main(){
-///     let prime = Generator::new_prime(1024);
-///     let safe = Generator::safe_prime(128);
-///
-///     let is_prime: bool = Verification::is_prime(&prime);
-///     let is_safe_prime: bool = Verification::is_safe_prime(&safe);
-///
-///     assert_eq!(is_prime, true);
-///     assert_eq!(is_safe_prime, true);
-/// }
-/// ```
 impl Generator {
     /// # Generate Prime Number
     /// This function generates a prime number of n-bits using three primality  tests.
@@ -86,32 +47,6 @@ impl Generator {
 
             if is_prime(&candidate) == true {
                 return candidate;
-            }
-        }
-    }
-
-    /// # Generate Safe Primes
-    /// This function will generate safe prime numbers, or numbers of the form p = 2q + 1 where p is the safe prime.
-    /// ```
-    /// use num_primes::Generator;
-    ///
-    /// fn main(){
-    ///     // p = 2q + 1 where p is the safe prime. This generates a number of 64 bits.
-    ///     let safe_prime = Generator::safe_prime(64);
-    /// }
-    /// ```
-    pub fn safe_prime(n: usize) -> BigUint {
-        let mut rng = rand::thread_rng();
-        loop {
-            // Make mutable and set LSB and MSB
-            let candidate: BigUint = rng.gen_biguint(n as u64);
-            //candidate.set_bit(0, true);
-            //candidate.set_bit((n-1) as u32, true);
-            if is_prime(&candidate) == true {
-                if is_safe_prime(&candidate) == true {
-                    // checks with (p-1/n)
-                    return candidate;
-                }
             }
         }
     }
@@ -380,19 +315,6 @@ fn is_prime(candidate: &BigUint) -> bool {
     };
 }
 
-// (p - 1)/2
-fn is_safe_prime(number: &BigUint) -> bool {
-    let one = BigUint::one();
-    let two = &one + &one;
-
-    let result = (number - one) / two;
-
-    return if is_prime(&result) {
-        true
-    } else {
-        false
-    }
-}
 /*
 // TODO FIX ME
 fn vsn(m: &BigUint,n: f64, c: u32) -> bool {
