@@ -5,7 +5,6 @@ use std::{error, usize};
 use std::str::FromStr;
 use num::{FromPrimitive, One, ToPrimitive, Zero};
 use num_bigint::{BigInt, BigUint, RandBigInt, ToBigInt};
-// use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
 use serde_json::Value;
 use crate::bigint::Generator;
 
@@ -25,15 +24,15 @@ mod tests{
         let msg = b"abc".as_slice();
 
         let enc = encrypto.encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt(enc);
+        let dec = encrypto1.decrypt(enc.as_bytes());
         x.push(dec);
 
         let enc = encrypto.encrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt_with_pkcsv1_15(enc);
+        let dec = encrypto1.decrypt_with_pkcsv1_15(enc.as_bytes());
         x.push(dec);
 
         let enc = encrypto.double_encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.double_decrypt(enc, encrypto.pbl.clone());
+        let dec = encrypto1.double_decrypt(enc.as_bytes(), encrypto.get_public_key());
         x.push(dec);
 
         let enc = encrypto.double_encrypt_with_pkcsv1_15(msg, encrypto1.pbl.clone()).unwrap();
@@ -41,6 +40,7 @@ mod tests{
         x.push(dec);
 
         for f in x.iter() {
+            println!("done");
             assert_eq!(&msg.to_vec(), f);
         }
 
@@ -156,10 +156,12 @@ impl EncryptoRSA {
         }
     }
 
+    /// Returns public key struct (can't be used for sharing to other languages)
     pub fn get_public_key(&self) -> PublicKey {
         self.pbl.clone()
     }
 
+    /// Converts recieved base64 encoded public key to PublicKey struct
     pub fn desterilize_pub_key(encoded: String) -> PublicKey {
         let x = base64::decode(encoded).unwrap();
         let json: Value = serde_json::from_slice(&*x).unwrap();
@@ -177,6 +179,7 @@ impl EncryptoRSA {
         }
     }
 
+    ///Returns base64 encoded public key which can be shared to other app which uses Encrypto-RSA
     pub fn get_sterilized_pub_key(&self) -> String {
         let mut hm = HashMap::<&str, String>::new();
         hm.insert("pe", self.pbl.e.clone().to_string());
@@ -185,15 +188,7 @@ impl EncryptoRSA {
         base64::encode(json.as_bytes())
     }
 
-/*    pub fn encrypt_from_string(&self, val: String, pub_key: PublicKey) -> String {
-        let bi = convert_bytes_to_big_int(val.as_bytes());
-        let enc = (bi * pub_key.e) % pub_key.n;
-        let enc = (enc * self.pri.d.clone()) % self.pri.on.clone();
-        let by = convert_bigint_to_bytes(enc);
-        base64::encode(by)
-    }*/
-
-    ///This method encrypts with the `pub_key` and again encrypts that with your private key.
+    /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt(...) method
     pub fn double_encrypt(&self, bytes: &[u8], pub_key: PublicKey) -> Result<String> {
@@ -206,7 +201,7 @@ impl EncryptoRSA {
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
 
-    ///This method encrypts with the `pub_key`, adds random bytes to the string.
+    /// This method adds random bytes to the message, encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt_with_pkcsv1_15(...) method
     pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: PublicKey) ->  Result<String> {
@@ -220,6 +215,9 @@ impl EncryptoRSA {
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
 
+    /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
+    ///
+    /// You can decrypt it using double_decrypt_with_pkcsv1_15(...) method
     pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: PublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
@@ -247,16 +245,21 @@ impl EncryptoRSA {
     ///This method decrypts value twice, once with public key and then with private key.
     ///
     /// this way you know that the public key is from the designated sender
-    pub fn double_decrypt(&self, val: String, pub_key: PublicKey) -> Vec<u8> {
-        let by = base64::decode(val.as_bytes()).unwrap();
+    pub fn double_decrypt(&self, val: &[u8], pub_key: PublicKey) -> Vec<u8> {
+        let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         let dec = bi.modpow(&pub_key.e, &pub_key.n);
         let dec = dec.modpow(&self.pri.d, &self.pri.n);
         convert_bigint_to_bytes(dec)
     }
 
+    ///This method decrypts value twice, once with public key and then with private key.
+    ///
+    /// this way you know that the public key is from the designated sender
+    ///
+    /// It removes first 16 bytes, which were used to increase message length to protect it against attacks
     pub fn double_decrypt_with_pkcsv1_15(&self, val: String, pub_key: PublicKey) -> Vec<u8> {
-        let by = base64::decode(val.as_bytes()).unwrap();
+        let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         let dec = bi.modpow(&pub_key.e, &pub_key.n);
         let dec = dec.modpow(&self.pri.d, &self.pri.n);
@@ -265,9 +268,9 @@ impl EncryptoRSA {
         x
     }
 
-    ///This method decrypts value with private key.
-    pub fn decrypt(&self, val: String) -> Vec<u8> {
-        let by = base64::decode(val.as_bytes()).unwrap();
+    /// This method decrypts value with private key.
+    pub fn decrypt(&self, val: &[u8]) -> Vec<u8> {
+        let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         // let dec = (bi*self.pbl.e.clone()) % self.pbl.n.clone();
         let dec = bi.modpow(&self.pri.d.clone(), &self.pri.n.clone());
@@ -275,8 +278,8 @@ impl EncryptoRSA {
     }
 
     /// This method decrypts value with private key and returns decoded value of pkcsv1 1.5 padding.
-    pub fn decrypt_with_pkcsv1_15(&self, val: String) -> Vec<u8> {
-        let by = base64::decode(val.as_bytes()).unwrap();
+    pub fn decrypt_with_pkcsv1_15(&self, val: &[u8]) -> Vec<u8> {
+        let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         // let dec = (bi*self.pbl.e.clone()) % self.pbl.n.clone();
         let dec = bi.modpow(&self.pri.d.clone(), &self.pri.n.clone());

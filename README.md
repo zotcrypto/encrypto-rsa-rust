@@ -30,15 +30,15 @@ encrypto_rust = "2.0.0"
         let msg = b"abc".as_slice();
 
         let enc = encrypto.encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt(enc);
+        let dec = encrypto1.decrypt(enc.as_bytes());
         x.push(dec);
 
         let enc = encrypto.encrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt_with_pkcsv1_15(enc);
+        let dec = encrypto1.decrypt_with_pkcsv1_15(enc.as_bytes());
         x.push(dec);
 
         let enc = encrypto.double_encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.double_decrypt(enc, encrypto.pbl.clone());
+        let dec = encrypto1.double_decrypt(enc.as_bytes(), encrypto.get_public_key());
         x.push(dec);
 
         let enc = encrypto.double_encrypt_with_pkcsv1_15(msg, encrypto1.pbl.clone()).unwrap();
@@ -48,7 +48,6 @@ encrypto_rust = "2.0.0"
         for f in x.iter() {
             assert_eq!(&msg.to_vec(), f);
         }
-
 ```
 
 ### Please raise an issue [here](https://github.com/zotcrypto/encrypto-rsa/issues) if the documentation isn't uploaded in long time
