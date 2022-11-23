@@ -1,22 +1,24 @@
 [package]
 name = "encrypto_rsa"
-version = "0.2.1"
+version = "2.0.0"
 edition = "2021"
 description = "stunning-encrypto is cross platform end-to-end encryption dependency."
 homepage = "https://zot.ssdd.dev/encrypto-rsa/"
 repository = "https://github.com/zotcrypto/encrypto-rsa"
 readme = "README.md"
-keywords = ["RSA", "end-to-end-encryptio", "stunning-encrypto", "encryption", "rust-e2ee"]
+keywords = ["RSA", "end-to-end-encrypton", "stunning-encrypto", "encryption", "rust-e2ee"]
 categories = ["cryptography"]
 license = "MIT"
 
 [dependencies]
 rand = "0.8.5"
-num-traits = "0.2.15"
 num = { version = "0.4.0", default-features = false }
-num-integer = "0.1.45"
 num-bigint = { version = "0.4.3", features = ["rand", "serde"] }
 serde = { version = "1.0.147", features = ["derive"] }
-serde_json = {version = "1.0.87"}
+serde_json = {version = "1.0.89"}
 base64 = "0.13.1"
+#rsa = "0.7.2"
+#pem = "1.1.0"
 #libaes = "0.6.4"
+#num-traits = "0.2.15"
+#num-integer = "0.1.45"

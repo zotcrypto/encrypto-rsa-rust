@@ -1,6 +1,5 @@
 # About Project
-End to End encryption (RSA e2ee) for multiple languages (cross-platform) and Value password protection (DES encryption) specially for local file encryption!
-
+End to End encryption (RSA) for multiple languages (cross-platform) with [double encryption](https://www.ssdd.dev/ssdd/zot/crypto/posts/rsa#doubleenc) and [double decryption methods](https://www.ssdd.dev/ssdd/zot/crypto/posts/rsa#doubledec)
 
 | Icon |             Item              |
 |:----:|:-----------------------------:|
@@ -13,41 +12,46 @@ End to End encryption (RSA e2ee) for multiple languages (cross-platform) and Val
 ## Implementation
 ### Cargo
 ```xml
-encrypto_rust = "0.2.1"
+encrypto_rust = "2.0.0"
 ```
 
 ## RSA
 
 
-### RSA Init
+### Documentation will be published soon at our [website](https://www.ssdd.dev/zot/crypto/rsa/rust)
+
+## You can try:
 
 ```rust
-let encrypto = EncryptoRSA::init(1024);
+        let mut x = Vec::new();
+
+        let encrypto = EncryptoRSA::init(512);
+        let encrypto1 = EncryptoRSA::init(512);
+        let msg = b"abc".as_slice();
+
+        let enc = encrypto.encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
+        let dec = encrypto1.decrypt(enc);
+        x.push(dec);
+
+        let enc = encrypto.encrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
+        let dec = encrypto1.decrypt_with_pkcsv1_15(enc);
+        x.push(dec);
+
+        let enc = encrypto.double_encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
+        let dec = encrypto1.double_decrypt(enc, encrypto.pbl.clone());
+        x.push(dec);
+
+        let enc = encrypto.double_encrypt_with_pkcsv1_15(msg, encrypto1.pbl.clone()).unwrap();
+        let dec = encrypto1.double_decrypt_with_pkcsv1_15(enc, encrypto.pbl.clone());
+        x.push(dec);
+
+        for f in x.iter() {
+            assert_eq!(&msg.to_vec(), f);
+        }
+
 ```
-### RSA Encrypt
-```rust
-let public_key = encrypto.get_public_key(); //returns PublicKey struct
-let msg = "Alo".to_string(); // sample message to be encrypted 
-let enc = e.encrypt_from_string(msg.clone(), public_key.clone()); // returns encrypted msg as base64 string
 
-Or
-
-let enc_from_bytes = e.encrypt_from_bytes(bytes, public_key); // returns encrypted bytes as base64 string
-
-```
-
-### RSA Decrypt
-
-```rust
-let dec = encrypto.decrypt_as_string(enc); // returns decoded msg as string
-
-Or
-
-let dec_from_bytes = encrypto.decrypt_as_bytes(enc_from_bytes); // returns bytes as Vec<u8>
-```
-
-## DES
-### Unavailable for rust as of now
+### Please raise an issue [here](https://github.com/zotcrypto/encrypto-rsa/issues) if the documentation isn't uploaded in long time
 
 ## Upcoming
 
@@ -57,7 +61,7 @@ let dec_from_bytes = encrypto.decrypt_as_bytes(enc_from_bytes); // returns bytes
 | Java                | Completed and available [here](https://github.com/ssddcodes/stunning-encrypto/)                           |
 | JavaScript          | Completed and available [here](https://github.com/ssddcodes/stunning-encrypto/edit/encrypto/tree/js)      |
 
-* And DES support for rust
+* Amazing encrypto with prevention against man in the middle attacks and AES-CBC with RSA key exchange for multiple language
 
 ## License
 
