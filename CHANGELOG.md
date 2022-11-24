@@ -8,3 +8,6 @@
 * Renamed some functions and changed functionality (see [README](README.md))
 # 2.0.0
 * Major bug fixes (anyone was able to decrypt with any private key)
+# 3.0.0
+* Made ZotPublicKey and ZotPrivateKey structs public
+* Fixed readme
