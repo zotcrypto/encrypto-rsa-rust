@@ -11,9 +11,8 @@ End to End encryption (RSA) for multiple languages (cross-platform) with [double
 
 ## Implementation
 ### Cargo
-```xml
-encrypto_rust = "2.0.0"
-```
+`encrypto_rsa =` [latest](https://crates.io/crates/encrypto_rsa)
+
 
 ## RSA
 

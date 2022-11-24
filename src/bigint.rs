@@ -353,16 +353,3 @@ fn vsn(m: &BigUint,n: f64, c: u32) -> bool {
 
 }
 */
-
-#[cfg(test)]
-#[test]
-fn generate(){
-    let _x = Generator::new_prime(512);
-}
-
-#[cfg(test)]
-#[test]
-fn generate_safe_prime(){
-    // p = 2q + 1 where p is safe prime
-    let _p = Generator::safe_prime(64);
-}

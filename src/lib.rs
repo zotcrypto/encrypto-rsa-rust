@@ -16,34 +16,12 @@ mod tests{
 
     #[test]
     fn encrypto_tests(){
-
-        let mut x = Vec::new();
-
         let encrypto = EncryptoRSA::init(512);
         let encrypto1 = EncryptoRSA::init(512);
         let msg = b"abc".as_slice();
 
-        let enc = encrypto.encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt(enc.as_bytes());
-        x.push(dec);
-
-        let enc = encrypto.encrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.decrypt_with_pkcsv1_15(enc.as_bytes());
-        x.push(dec);
-
         let enc = encrypto.double_encrypt(msg, EncryptoRSA::desterilize_pub_key(encrypto1.get_sterilized_pub_key())).unwrap();
-        let dec = encrypto1.double_decrypt(enc.as_bytes(), encrypto.get_public_key());
-        x.push(dec);
-
-        let enc = encrypto.double_encrypt_with_pkcsv1_15(msg, encrypto1.pbl.clone()).unwrap();
-        let dec = encrypto1.double_decrypt_with_pkcsv1_15(enc, encrypto.pbl.clone());
-        x.push(dec);
-
-        for f in x.iter() {
-            println!("done");
-            assert_eq!(&msg.to_vec(), f);
-        }
-
+        let dec = encrypto1.double_decrypt(enc.as_bytes(), encrypto.pbl.clone());
     }
 }
 
@@ -80,7 +58,6 @@ mod private_tests{
         let dec1 = dec.modpow(&d, &n); // c3 ^ d % n
 
         assert_eq!(a, dec1);
-
     }
 }
 
@@ -107,13 +84,13 @@ mod private_tests{
 /// ```
 #[derive(Debug, Default, Clone)]
 pub struct EncryptoRSA {
-    pbl: PublicKey,
-    pri: PrivateKey,
+    pbl: ZotPublicKey,
+    pri: ZotPrivateKey,
 }
 
 /// Struct to store public key
 #[derive(Debug, Default, Clone)]
-pub struct PublicKey {
+pub struct ZotPublicKey {
     e: BigUint,
     n: BigUint,
     keylen: usize
@@ -121,7 +98,7 @@ pub struct PublicKey {
 
 /// Struct to store private key
 #[derive(Debug, Default, Clone)]
-struct PrivateKey {
+pub struct ZotPrivateKey {
     n: BigUint,
     d: BigUint,
 }
@@ -139,13 +116,13 @@ impl EncryptoRSA {
 
         assert_eq!(BigUint::one(), (d.clone() * e.clone()) % on);
 
-        let pbl: PublicKey = PublicKey {
+        let pbl: ZotPublicKey = ZotPublicKey {
             e,
             n: n.clone(),
             keylen: bit_len
         };
 
-        let pri: PrivateKey = PrivateKey {
+        let pri: ZotPrivateKey = ZotPrivateKey {
             n,
             d
         };
@@ -157,12 +134,12 @@ impl EncryptoRSA {
     }
 
     /// Returns public key struct (can't be used for sharing to other languages)
-    pub fn get_public_key(&self) -> PublicKey {
+    pub fn get_public_key(&self) -> ZotPublicKey {
         self.pbl.clone()
     }
 
     /// Converts recieved base64 encoded public key to PublicKey struct
-    pub fn desterilize_pub_key(encoded: String) -> PublicKey {
+    pub fn desterilize_pub_key(encoded: String) -> ZotPublicKey {
         let x = base64::decode(encoded).unwrap();
         let json: Value = serde_json::from_slice(&*x).unwrap();
         let x = json.get("n").unwrap().as_str().unwrap();
@@ -172,7 +149,7 @@ impl EncryptoRSA {
         let xx = x.as_bytes();
         let e = BigUint::parse_bytes(xx, 10).unwrap();
         let bit_len = usize::from_str(json.get("pe").unwrap().as_str().unwrap()).unwrap();
-        PublicKey {
+        ZotPublicKey {
             e,
             n,
             keylen: bit_len
@@ -191,20 +168,23 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt(...) method
-    pub fn double_encrypt(&self, bytes: &[u8], pub_key: PublicKey) -> Result<String> {
+    pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
         let bi = convert_bytes_to_big_int(bytes);
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
+        println!("{}", enc.clone());
         let enc = enc.modpow(&self.pri.d, &self.pri.n);
+        println!("{}", enc.clone());
+        println!("{}", bi);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
 
     /// This method adds random bytes to the message, encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt_with_pkcsv1_15(...) method
-    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: PublicKey) ->  Result<String> {
+    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -218,7 +198,7 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt_with_pkcsv1_15(...) method
-    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: PublicKey) -> Result<String> {
+    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -233,7 +213,7 @@ impl EncryptoRSA {
     ///This method encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt(...) method
-    pub fn encrypt(&self, bytes: &[u8], pub_key: PublicKey) ->  Result<String> {
+    pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -245,7 +225,7 @@ impl EncryptoRSA {
     ///This method decrypts value twice, once with public key and then with private key.
     ///
     /// this way you know that the public key is from the designated sender
-    pub fn double_decrypt(&self, val: &[u8], pub_key: PublicKey) -> Vec<u8> {
+    pub fn double_decrypt(&self, val: &[u8], pub_key: ZotPublicKey) -> Vec<u8> {
         let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         let dec = bi.modpow(&pub_key.e, &pub_key.n);
@@ -258,7 +238,7 @@ impl EncryptoRSA {
     /// this way you know that the public key is from the designated sender
     ///
     /// It removes first 16 bytes, which were used to increase message length to protect it against attacks
-    pub fn double_decrypt_with_pkcsv1_15(&self, val: String, pub_key: PublicKey) -> Vec<u8> {
+    pub fn double_decrypt_with_pkcsv1_15(&self, val: String, pub_key: ZotPublicKey) -> Vec<u8> {
         let by = base64::decode(val).unwrap();
         let bi = convert_bytes_to_big_int(&*by);
         let dec = bi.modpow(&pub_key.e, &pub_key.n);
