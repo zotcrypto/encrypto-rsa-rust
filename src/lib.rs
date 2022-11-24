@@ -138,6 +138,11 @@ impl EncryptoRSA {
         self.pbl.clone()
     }
 
+    /// Returns private key struct (can't be used for sharing to other languages)
+    pub fn get_private_key(&self) -> ZotPrivateKey {
+        self.pri.clone()
+    }
+
     /// Converts recieved base64 encoded public key to PublicKey struct
     pub fn desterilize_pub_key(encoded: String) -> ZotPublicKey {
         let x = base64::decode(encoded).unwrap();

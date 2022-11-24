@@ -11,3 +11,5 @@
 # 3.0.0
 * Made ZotPublicKey and ZotPrivateKey structs public
 * Fixed readme
+# 3.1.0
+* Added `get_private_key(&self)` function which returns  ZotPrivateKey struct.
