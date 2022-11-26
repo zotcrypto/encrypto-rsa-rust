@@ -1,3 +1,7 @@
+![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=encrypto-rsa)
+![Crates Badge](https://img.shields.io/crates/v/encrypto_rsa)
+![Crates Downloads](https://img.shields.io/crates/d/encrypto_rsa)
+
 # About Project
 End to End encryption (RSA) for multiple languages (cross-platform) with [double encryption](https://www.ssdd.dev/ssdd/zot/crypto/posts/rsa#doubleenc) and [double decryption methods](https://www.ssdd.dev/ssdd/zot/crypto/posts/rsa#doubledec)
 
