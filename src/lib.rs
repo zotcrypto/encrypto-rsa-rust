@@ -221,7 +221,7 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt(...) method
-    pub fn double_encrypt<T: AsRef<[u8]>>(&self, bytes: T, pub_key: ZotPublicKey) -> Result<String> {
+    pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -234,7 +234,7 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt_with_pkcsv1_15(...) method
-    pub fn encrypt_with_pkcsv1_15<T: AsRef<[u8]>>(&self, bytes: T, pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -248,7 +248,7 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt_with_pkcsv1_15(...) method
-    pub fn double_encrypt_with_pkcsv1_15<T: AsRef<[u8]>>(&self, bytes: T, pub_key: ZotPublicKey) -> Result<String> {
+    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -263,7 +263,7 @@ impl EncryptoRSA {
     ///This method encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt(...) method
-    pub fn encrypt<T: AsRef<[u8]>>(&self, bytes: T, pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
