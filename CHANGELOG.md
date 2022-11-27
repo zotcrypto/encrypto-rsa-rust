@@ -13,3 +13,6 @@
 * Fixed readme
 # 3.1.0
 * Added `get_private_key(&self)` function which returns  ZotPrivateKey struct.
+# 3.1.1
+* Change input type from string to bytes
+* Tested with corresponding Java dependency
