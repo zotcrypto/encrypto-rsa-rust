@@ -1,10 +1,10 @@
 [package]
 name = "encrypto_rsa"
-version = "3.1.1"
+version = "3.1.2"
 edition = "2021"
 description = "stunning-encrypto is cross platform end-to-end encryption dependency."
-homepage = "https://zot.ssdd.dev/encrypto-rsa/"
-repository = "https://github.com/zotcrypto/encrypto-rsa"
+homepage = "https://www.ssdd.dev/zot/crypto/rsa/rust"
+repository = "https://github.com/zotcrypto/encrypto-rsa-rust"
 readme = "README.md"
 keywords = ["RSA", "end-to-end-encrypton", "stunning-encrypto", "encryption", "rust-e2ee"]
 categories = ["cryptography"]

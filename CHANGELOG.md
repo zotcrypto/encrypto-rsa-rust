@@ -16,3 +16,5 @@
 # 3.1.1
 * Change input type from string to bytes
 * Tested with corresponding Java dependency
+# 3.1.2
+* Added encryption methods to ZotPublicKey struct itself.

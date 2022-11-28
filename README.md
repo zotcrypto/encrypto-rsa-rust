@@ -53,7 +53,7 @@ End to End encryption (RSA) for multiple languages (cross-platform) with [double
         }
 ```
 
-### Please raise an issue [here](https://github.com/zotcrypto/encrypto-rsa/issues) if the documentation isn't uploaded in long time
+### Please raise an issue [here](https://github.com/zotcrypto/encrypto-rsa-rust/issues) if the documentation isn't uploaded in long time
 
 ## Upcoming
 
