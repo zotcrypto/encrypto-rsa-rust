@@ -222,28 +222,28 @@ impl EncryptoRSA {
     ///
     /// You can decrypt it using double_decrypt(...) method
     pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
-        self.pbl.double_encrypt(bytes, pub_key, self)
+        ZotPublicKey::double_encrypt(bytes, pub_key, self)
     }
 
     /// This method adds random bytes to the message, encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt_with_pkcsv1_15(...) method
     pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
-        self.pbl.encrypt_with_pkcsv1_15(bytes, pub_key)
+        ZotPublicKey::encrypt_with_pkcsv1_15(bytes, pub_key)
     }
 
     /// This method adds random bytes to the message, encrypts with the `pub_key` and again encrypts it with your private key.
     ///
     /// You can decrypt it using double_decrypt_with_pkcsv1_15(...) method
     pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
-        self.pbl.double_encrypt_with_pkcsv1_15(bytes, pub_key, self)
+        ZotPublicKey::double_encrypt_with_pkcsv1_15(bytes, pub_key, self)
     }
 
     ///This method encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt(...) method
     pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
-        self.pbl.encrypt(bytes, pub_key)
+        ZotPublicKey::encrypt(bytes, pub_key)
     }
 
     ///This method decrypts value twice, once with public key and then with private key.
@@ -296,7 +296,7 @@ impl EncryptoRSA {
 }
 
 impl ZotPublicKey {
-    pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt(bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -304,7 +304,7 @@ impl ZotPublicKey {
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
+    pub fn double_encrypt_with_pkcsv1_15(bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -315,7 +315,7 @@ impl ZotPublicKey {
         let enc = enc.modpow(&encrypto.pri.d, &encrypto.pri.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt_with_pkcsv1_15(bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -325,7 +325,7 @@ impl ZotPublicKey {
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
+    pub fn double_encrypt(bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }

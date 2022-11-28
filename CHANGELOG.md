@@ -18,3 +18,5 @@
 * Tested with corresponding Java dependency
 # 3.1.2
 * Added encryption methods to ZotPublicKey struct itself.
+# 3.1.3
+* Some bug fixes
