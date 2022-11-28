@@ -222,7 +222,7 @@ impl EncryptoRSA {
     ///
     /// You can decrypt it using double_decrypt(...) method
     pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
-        self.pbl.double_encrypt(bytes, pub_key)
+        self.pbl.double_encrypt(bytes, pub_key, self)
     }
 
     /// This method adds random bytes to the message, encrypts with the `pub_key`.
@@ -236,7 +236,7 @@ impl EncryptoRSA {
     ///
     /// You can decrypt it using double_decrypt_with_pkcsv1_15(...) method
     pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
-        self.pbl.double_encrypt_with_pkcsv1_15(bytes, pub_key)
+        self.pbl.double_encrypt_with_pkcsv1_15(bytes, pub_key, self)
     }
 
     ///This method encrypts with the `pub_key`.
@@ -304,7 +304,7 @@ impl ZotPublicKey {
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
+    pub fn double_encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -312,7 +312,7 @@ impl ZotPublicKey {
         v.append(&mut bytes.to_vec());
         let bi = convert_bytes_to_big_int(&*v);
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
-        let enc = enc.modpow(&self.pri.d, &self.pri.n);
+        let enc = enc.modpow(&encrypto.pri.d, &encrypto.pri.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
     pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
@@ -325,13 +325,13 @@ impl ZotPublicKey {
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
+    pub fn double_encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey, encrypto: &EncryptoRSA) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
         let bi = convert_bytes_to_big_int(bytes);
         let enc = bi.modpow(&pub_key.e, &pub_key.n);
-        let enc = enc.modpow(&self.pri.d, &self.pri.n);
+        let enc = enc.modpow(&encrypto.pri.d, &encrypto.pri.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
 }

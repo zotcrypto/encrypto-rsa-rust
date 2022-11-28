@@ -316,7 +316,6 @@ fn is_prime(candidate: &BigUint) -> bool {
 }
 
 /*
-// TODO FIX ME
 fn vsn(m: &BigUint,n: f64, c: u32) -> bool {
     // c: fixed constant
 
