@@ -330,6 +330,7 @@ impl ZotPrivateKey {
 
 impl ZotPublicKey {
     pub fn from(n: BigUint, e: Option<BigUint>) -> ZotPublicKey {
+        let nx = n.to_bytes_be().len();
         ZotPublicKey {
             e: {
                 match e {
@@ -339,7 +340,7 @@ impl ZotPublicKey {
             },
             n,
             keylen: {
-                n.to_bytes_be().len()
+                nx
             },
         }
     }
