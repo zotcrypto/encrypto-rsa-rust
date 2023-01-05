@@ -92,12 +92,13 @@ mod private_tests{
     }
     #[test]
     fn idk(){
-        let bit_len = 1024  ;
+        let bit_len = 2048;
         //bob
         let e = BigUint::from(65537 as u32);
-        let p = Generator::new_prime(bit_len);
-        let q = Generator::new_prime(bit_len);
+        let p = Generator::new_prime(bit_len/2);
+        let q = Generator::new_prime(bit_len/2);
         let n = p.clone() * q.clone();
+        println!("{}", n.to_bytes_le().len());
         let on = (p - BigUint::one()) * (q - BigUint::one());
         let d = modinv(e.clone().to_bigint().unwrap(), on.clone().to_bigint().unwrap()).unwrap();
 
@@ -117,6 +118,10 @@ mod private_tests{
         let dec1 = dec.modpow(&d, &n); // c3 ^ d % n
 
         assert_eq!(a, dec1);
+    }
+    #[test]
+    fn et(){
+        let e = EncryptoRSA::init(1024);
     }
 }
 
@@ -167,9 +172,10 @@ impl EncryptoRSA {
     /// * `bit_len` - it's better to use bit length >= 2048
     pub fn init(bit_len: usize) -> Self {
         let e = BigUint::from(65537 as u32);
-        let p = Generator::new_prime(bit_len);
-        let q = Generator::new_prime(bit_len);
+        let p = Generator::new_prime(bit_len/2);
+        let q = Generator::new_prime(bit_len/2);
         let n = p.clone() * q.clone();
+        println!("{}", n.to_bytes_be().len());
         let on = (p - BigUint::one()) * (q - BigUint::one());
         let d = modinv(e.clone().to_bigint().unwrap(), on.clone().to_bigint().unwrap()).unwrap();
 
