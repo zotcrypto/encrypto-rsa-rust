@@ -11,17 +11,17 @@ use crate::bigint::Generator;
 type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use num_bigint::BigUint;
     use crate::{EncryptoRSA, Generator, One};
 
     #[test]
-    fn foox(){
+    fn foox() {
         println!("{}", 0x10);
     }
 
     #[test]
-    fn encrypto_tests(){
+    fn encrypto_tests() {
         let c = BigUint::parse_bytes("861270243527190895777142537838333832920579264010533029282104230006461420086153423".as_bytes(), 10).unwrap();
         let n = BigUint::parse_bytes("1311097532562595991877980619849724606784164430105441327897358800116889057763413423".as_bytes(), 10).unwrap();
         let e = BigUint::parse_bytes("65537".as_bytes(), 10).unwrap();
@@ -38,7 +38,7 @@ mod tests{
     }
 
     #[test]
-    fn cross_platform(){
+    fn cross_platform() {
         let encrypto = EncryptoRSA::init(512);
         println!("{}", encrypto.get_sterilized_pub_key());
         println!("Enter message: ");
@@ -49,29 +49,28 @@ mod tests{
         std::io::stdin().read_line(&mut dec_method).unwrap();
 
         if "decrypt".to_string() == dec_method {
-            println!("{:?}",encrypto.decrypt(msg));
-        }else if "double_decrypt".to_string() == dec_method {
+            println!("{:?}", encrypto.decrypt(msg));
+        } else if "double_decrypt".to_string() == dec_method {
             let mut pubkey = String::new();
             std::io::stdin().read_line(&mut pubkey).unwrap();
-            println!("{:?}",encrypto.double_decrypt(msg.as_bytes(), EncryptoRSA::desterilize_pub_key(pubkey)));
-        }else if "double_decrypt_with_pkcsv1_15".to_string() == dec_method {
+            println!("{:?}", encrypto.double_decrypt(msg.as_bytes(), EncryptoRSA::desterilize_pub_key(pubkey)));
+        } else if "double_decrypt_with_pkcsv1_15".to_string() == dec_method {
             let mut pubkey = String::new();
             std::io::stdin().read_line(&mut pubkey).unwrap();
-            println!("{:?}",encrypto.double_decrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(pubkey)));
-        }else if "decrypt_with_pkcsv1_15".to_string() == dec_method {
+            println!("{:?}", encrypto.double_decrypt_with_pkcsv1_15(msg, EncryptoRSA::desterilize_pub_key(pubkey)));
+        } else if "decrypt_with_pkcsv1_15".to_string() == dec_method {
             println!("{:?}", encrypto.decrypt_with_pkcsv1_15(msg));
         }
     }
-
 }
 
 #[cfg(test)]
-mod private_tests{
+mod private_tests {
     use num_bigint::{BigUint, RandBigInt, ToBigInt};
     use crate::{EncryptoRSA, Generator, modinv, One};
 
     #[test]
-    fn b64check(){
+    fn b64check() {
         //[67, 84, 116, 100, 77, 88, 87, 73, 100, 72, 103, 73, 84, 85, 119, 83, 72, 50, 74, 51, 67, 122, 50, 76, 56, 111, 85, 104, 49, 83, 82, 104, 120, 112, 103, 79, 72, 99, 80, 73, 73, 50, 69, 61, 10]
         let b64 = base64::decode("eyJwZSI6NjU1MzcsIm4iOjcwOTQ0NzU1MDgwNjM0OTIzNzI3NTQ0NzkwMjM0Mzg3MzE0NTQ4NTQ0OTIzNjAwMjQ1NzA1NjM1ODYxNDg4NjIxNDU3MzgwOTI3MjA3LCJrZXlsZW4iOjEyOH0=").unwrap();
         // let b641 = base64::decode("aLTdPaIP8v5YA3bwETeM4OP88/+28dfzkshLkP5tOqk=".as_bytes()).unwrap();
@@ -86,17 +85,18 @@ mod private_tests{
     }
 
     #[test]
-    fn check_len(){
+    fn check_len() {
         let mut v = rand::thread_rng().gen_biguint(128).to_bytes_le();
         println!("{:?}", v);
     }
+
     #[test]
-    fn idk(){
+    fn idk() {
         let bit_len = 2048;
         //bob
         let e = BigUint::from(65537 as u32);
-        let p = Generator::new_prime(bit_len/2);
-        let q = Generator::new_prime(bit_len/2);
+        let p = Generator::new_prime(bit_len / 2);
+        let q = Generator::new_prime(bit_len / 2);
         let n = p.clone() * q.clone();
         println!("{}", n.to_bytes_le().len());
         let on = (p - BigUint::one()) * (q - BigUint::one());
@@ -114,13 +114,14 @@ mod private_tests{
         let enc = a.modpow(&e, &n); // msg^e % n
         let enc1 = enc.modpow(&d1, &n1); // c1 ^ d1 % n1
 
-        let dec = enc1.modpow(&e,&n1); // c2 ^ e % n1
+        let dec = enc1.modpow(&e, &n1); // c2 ^ e % n1
         let dec1 = dec.modpow(&d, &n); // c3 ^ d % n
 
         assert_eq!(a, dec1);
     }
+
     #[test]
-    fn et(){
+    fn et() {
         let e = EncryptoRSA::init(1024);
     }
 }
@@ -157,7 +158,7 @@ pub struct EncryptoRSA {
 pub struct ZotPublicKey {
     e: BigUint,
     n: BigUint,
-    keylen: usize
+    keylen: usize,
 }
 
 /// Struct to store private key
@@ -168,29 +169,35 @@ pub struct ZotPrivateKey {
 }
 
 impl EncryptoRSA {
+    fn from(private_key: ZotPrivateKey, public_key: ZotPublicKey) -> EncryptoRSA {
+        EncryptoRSA {
+            pbl: public_key,
+            pri: private_key,
+        }
+    }
 
     /// * `bit_len` - it's better to use bit length >= 2048
     pub fn init(bit_len: usize) -> Self {
         let e = BigUint::from(65537 as u32);
-        let p = Generator::new_prime(bit_len/2);
-        let q = Generator::new_prime(bit_len/2);
+        let p = Generator::new_prime(bit_len / 2);
+        let q = Generator::new_prime(bit_len / 2);
         let n = p.clone() * q.clone();
         println!("{}", n.to_bytes_be().len());
         let on = (p - BigUint::one()) * (q - BigUint::one());
         let d = modinv(e.clone().to_bigint().unwrap(), on.clone().to_bigint().unwrap()).unwrap();
 
-        if BigUint::one() != (d.clone()*e.clone())%on.clone() {
+        if BigUint::one() != (d.clone() * e.clone()) % on.clone() {
             return EncryptoRSA::init(bit_len);
         }
         let pbl: ZotPublicKey = ZotPublicKey {
             e,
             n: n.clone(),
-            keylen: bit_len
+            keylen: bit_len,
         };
 
         let pri: ZotPrivateKey = ZotPrivateKey {
             n,
-            d
+            d,
         };
 
         Self {
@@ -221,7 +228,7 @@ impl EncryptoRSA {
         ZotPublicKey {
             e,
             n,
-            keylen: bit_len
+            keylen: bit_len,
         }
     }
 
@@ -245,7 +252,7 @@ impl EncryptoRSA {
     /// This method adds random bytes to the message, encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt_with_pkcsv1_15(...) method
-    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt_with_pkcsv1_15(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         ZotPublicKey::encrypt_with_pkcsv1_15(bytes, pub_key)
     }
 
@@ -259,7 +266,7 @@ impl EncryptoRSA {
     ///This method encrypts with the `pub_key`.
     ///
     /// You can decrypt it using decrypt(...) method
-    pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt(&self, bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         ZotPublicKey::encrypt(bytes, pub_key)
     }
 
@@ -312,8 +319,32 @@ impl EncryptoRSA {
     }
 }
 
+impl ZotPrivateKey {
+    pub fn from(n: BigUint, d: BigUint) -> ZotPrivateKey {
+        ZotPrivateKey {
+            n,
+            d,
+        }
+    }
+}
+
 impl ZotPublicKey {
-    pub fn encrypt(bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn from(n: BigUint, e: Option<BigUint>) -> ZotPublicKey {
+        ZotPublicKey {
+            e: {
+                match e {
+                    Some(e) => e,
+                    None => BigUint::from(65537 as u32)
+                }
+            },
+            n,
+            keylen: {
+                n.to_bytes_be().len()
+            },
+        }
+    }
+
+    pub fn encrypt(bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
@@ -332,7 +363,7 @@ impl ZotPublicKey {
         let enc = enc.modpow(&encrypto.pri.d, &encrypto.pri.n);
         Ok(base64::encode(convert_bigint_to_bytes(enc)))
     }
-    pub fn encrypt_with_pkcsv1_15(bytes: &[u8], pub_key: ZotPublicKey) ->  Result<String> {
+    pub fn encrypt_with_pkcsv1_15(bytes: &[u8], pub_key: ZotPublicKey) -> Result<String> {
         if pub_key.keylen - 11 < bytes.len() {
             panic!("Msg bigger than key-length, use at least 2048 bit key");
         }
