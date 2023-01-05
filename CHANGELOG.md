@@ -20,3 +20,5 @@
 * Added encryption methods to ZotPublicKey struct itself.
 # 3.1.3
 * Some bug fixes
+# 3.1.4
+* Fixed bitlength issue. (It used to generate the modulo 2x the entered bit-length)
