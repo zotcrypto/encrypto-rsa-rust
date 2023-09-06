@@ -1,6 +1,6 @@
 [package]
 name = "encrypto_rsa"
-version = "3.2.4"
+version = "4.0.0"
 edition = "2021"
 description = "stunning-encrypto is cross platform end-to-end encryption dependency."
 homepage = "https://www.ssdd.dev/zot/crypto/rsa/rust"
@@ -11,12 +11,13 @@ categories = ["cryptography"]
 license = "MIT"
 
 [dependencies]
+num-primes = "0.3.0"
 rand = "0.8.5"
-num = { version = "0.4.0", default-features = false }
-num-bigint = { version = "0.4.3", features = ["rand", "serde"] }
-serde = { version = "1.0.147", features = ["derive"] }
-serde_json = {version = "1.0.89"}
-base64 = "0.20.0"
+num = { version = "0.4.1", default-features = false }
+num-bigint = { version = "0.4.4", features = ["rand", "serde"] }
+base64 = "0.21.3"
+#serde = { version = "1.0.147", features = ["derive"] }
+#serde_json = {version = "1.0.89"}
 #rsa = "0.7.2"
 #pem = "1.1.0"
 #libaes = "0.6.4"
