@@ -3,23 +3,25 @@
 ![Crates Downloads](https://img.shields.io/crates/d/encrypto_rsa)
 
 # About Project
+
 End to End NO STD, WASM supported, platform independent RSA encryption and decryption library for High Level Usage
 
-| Icon |             Item              |
-|:----:|:-----------------------------:|
-|  🥳  |   [**Upcoming**](#Upcoming)   |
-|  ⚖️  |    [**License**](#License)    |
+| Icon |           Item            |
+| :--: | :-----------------------: |
+|  🥳  | [**Upcoming**](#Upcoming) |
+|  ⚖️  |  [**License**](#License)  |
 
 # Usage (rust)
 
 ## Implementation
+
 ### Cargo
+
 ```shell
 cargo add encrypto_rsa
 ```
 
 ## RSA
-
 
 ### Documentation will be published soon at our [website](https://www.ssdd.dev/zot/crypto/rsa/rust)
 
@@ -42,12 +44,12 @@ fn main() {
 ## Upcoming
 
 | Supported Languages | Status |
-|---------------------|--------|
+| ------------------- | ------ |
 | Flutter             | WIP    |
 | Java                | WIP    |
 | JavaScript          | WIP    |
 
-* Amazing encrypto with prevention against man in the middle attacks and AES-CBC with RSA key exchange for multiple language
+- Amazing encrypto with prevention against man in the middle attacks and AES-CBC with RSA key exchange for multiple language
 
 ## License
 
