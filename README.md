@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/github/zotcrypto/encrypto-rsa-rust/graph/badge.svg?token=WTW4S5NPQO)](https://codecov.io/github/zotcrypto/encrypto-rsa-rust)
 ![Visitor Badge](https://visitor-badge.laobi.icu/badge?page_id=encrypto-rsa)
 ![Crates Badge](https://img.shields.io/crates/v/encrypto_rsa)
 ![Crates Downloads](https://img.shields.io/crates/d/encrypto_rsa)
