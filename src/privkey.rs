@@ -1,119 +1,75 @@
 use alloc::string::String;
-use alloc::vec;
 use alloc::vec::Vec;
-use core::ops::Mul;
-use base64::{Engine};
-use num::{One, Zero};
-use num::traits::FromBytes;
-use num_bigint::{BigInt, BigUint, ToBigInt};
-use num_primes::Generator;
-use crate::Bytes;
+
+use base64::Engine;
+use rand::rngs::OsRng;
+use rsa::rand_core::CryptoRngCore;
+use rsa::traits::PaddingScheme;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
+
 use crate::pubkey::ZotPublicKey;
+use crate::B64_ENGINE;
 
-/// Struct to store private key
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ZotPrivateKey {
-    d: BigUint,
-    p: BigUint,
-    q: BigUint,
-    on: BigUint,
-    pubkey: ZotPublicKey,
+    pub(crate) private_key: RsaPrivateKey,
 }
+
+// TODO: impl TryFrom<&str> for ZotPrivateKey
 impl ZotPrivateKey {
-    pub fn init(key_len: usize) -> Self {
-        let sz = key_len >> 1;
-        let pb = Generator::new_prime(sz).to_bytes_le();
-        let qb = Generator::new_prime(sz).to_bytes_le();
-        let p = BigUint::from_bytes_le(&*pb);
-        let q = BigUint::from_bytes_le(&*qb);
-        drop(pb);
-        drop(qb);
-        let n = (&p).mul(&q);
-        let e = BigUint::from(65537u32);
-        let bone = BigUint::one();
-        let on = (&p - &bone).mul(&q - bone);
-        let d = modinv(e.to_bigint().unwrap(), on.to_bigint().unwrap()).unwrap();
-        assert_eq!(&d * &e % &on, BigUint::one());
-        let pubkey = ZotPublicKey::init(n,e, key_len);
-        Self {
-            d,
-            p,
-            q,
-            on,
-            pubkey,
-        }
+    pub fn init(key_len: usize) -> anyhow::Result<Self> {
+        let mut rng = OsRng;
+        let key = Self::init_rng(&mut rng, key_len)?;
+        Ok(key)
     }
-    pub fn get_pub_key(&self) -> &ZotPublicKey{
-        &self.pubkey
-    }
-    pub fn get_sharable_pub_key(&self) -> String {
-        self.pubkey.enc_pk()
-    }
-    pub fn decode_shared_pub_key(b64: String) -> ZotPublicKey {
-        // let dec = hex::decode(b64).unwrap();
-        let dec = base64::engine::general_purpose::STANDARD_NO_PAD.decode(b64).unwrap();
-        let mut e = vec![];
-        let keylen = *dec.last().unwrap() as usize;
-        let mut n = vec![0;keylen];
-        for i in 0..keylen {
-            let cur = dec.get(i).unwrap();
-            n[i] = *cur;
-        }
-        let lmo = dec.len()-1;
-        for i in keylen..lmo {
-            let cur = dec.get(i).unwrap();
-            e.push(*cur);
-        }
-        let n = BigUint::from_le_bytes(&*n);
-        let e = BigUint::from_le_bytes(&*e);
-        ZotPublicKey::init(n,e,keylen)
-    }
-    pub fn enc_priv(&self, msg: &Bytes) -> Option<String> {
-        let len = msg.len();
-        if len > 24 || len > (self.pubkey.get_keylen()>>3) {
-            return None;
-        }
-        let bi = BigUint::from_bytes_le(msg);
-        let bi = bi.modpow(&self.d,&self.pubkey.n);
-        let b64 = base64::engine::general_purpose::STANDARD_NO_PAD.encode(bi.to_bytes_le());
-        Some(b64)
+    pub fn init_rng<R: CryptoRngCore + ?Sized>(
+        rng: &mut R,
+        key_len: usize,
+    ) -> anyhow::Result<Self> {
+        let private_key = RsaPrivateKey::new(rng, key_len)?;
+        Ok(Self { private_key })
     }
 
-    pub fn dec_priv(&self, msg: &Bytes) -> Option<Vec<u8>> {
-        let dec = match base64::engine::general_purpose::STANDARD_NO_PAD.decode(msg){
-            Ok(v) => v,
-            Err(_) => return None
-        };
-        let bi = BigUint::from_bytes_le(&*dec);
-        drop(dec);
-        let bi = bi.modpow(&self.d,&self.pubkey.n);
-        Some(bi.to_bytes_le())
+    pub fn decrypt<T: AsRef<[u8]>>(&mut self, msg: T) -> anyhow::Result<Vec<u8>> {
+        self.decrypt_with_padding(msg, Pkcs1v15Encrypt)
+    }
+    pub fn decrypt_with_padding<T: AsRef<[u8]>, P: PaddingScheme>(
+        &mut self,
+        msg: T,
+        padding: P,
+    ) -> anyhow::Result<Vec<u8>> {
+        let dec = B64_ENGINE.decode(msg)?;
+        let result = self.private_key.decrypt(padding, dec.as_ref())?;
+        Ok(result)
     }
 
-    pub fn enc_public(&self, msg: &Bytes) -> Option<String> {
-       self.pubkey.encrypt(msg)
+    pub fn to_public_key(&self) -> ZotPublicKey {
+        ZotPublicKey::init(self)
     }
 
-    pub fn dec_public(&self, msg: &Bytes) -> Option<Vec<u8>> {
-        self.pubkey.decrypt(msg)
+    pub fn serialize(&self) -> anyhow::Result<String> {
+        Ok(serde_json::to_string(&self.private_key)?)
+    }
+    pub fn deserialize(serialized: &str) -> anyhow::Result<Self> {
+        let private_key = serde_json::from_str(serialized)?;
+        Ok(Self { private_key })
     }
 }
 
-fn egcd(a: BigInt, b: BigInt) -> (BigInt, BigInt, BigInt) {
-    if a == BigInt::zero() {
-        (b, BigInt::zero(), BigInt::one())
-    } else {
-        let (g, x, y) = egcd(b.clone() % a.clone(), a.clone());
-        (g, y - (b / a) * x.clone(), x)
+impl TryFrom<&str> for ZotPrivateKey {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let private_key = Self::deserialize(value)?;
+        Ok(private_key)
     }
 }
 
-/// Returns modulo inverse
-pub fn modinv(a: BigInt, m: BigInt) -> Option<BigUint> {
-    let (g, x, _) = egcd(a, m.clone());
-    if g != BigInt::one() {
-        None
-    } else {
-        Some(((x % m.clone() + m.clone()) % m).to_biguint().unwrap())
+impl TryInto<String> for ZotPrivateKey {
+    type Error = anyhow::Error;
+
+    fn try_into(self) -> Result<String, Self::Error> {
+        let serialized = self.serialize()?;
+        Ok(serialized)
     }
 }
