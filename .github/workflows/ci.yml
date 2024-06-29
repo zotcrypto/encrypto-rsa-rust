@@ -28,7 +28,7 @@ jobs:
 
       - name: Test WASM
         run: |
-          cargo install wasm-bindgen-cli --vers "0.2.92"
+          cargo install wasm-pack
           wasm-pack test --node
 
   test:
