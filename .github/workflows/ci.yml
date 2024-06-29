@@ -1,0 +1,92 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  test_cf:
+    name: Run Tests (WASM)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+
+      - name: Test WASM
+        run: |
+          cargo install wasm-pack
+          wasm-pack test --node
+
+  test:
+    name: Run Tests on ${{ matrix.build }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          [linux-x64-gnu, linux-x64-musl, linux-arm64-gnu, linux-arm64-musl, linux-ia32-gnu, darwin-arm64, darwin-x64]
+        include:
+          - build: linux-x64-gnu
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+          - build: linux-x64-musl
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+
+          - build: linux-arm64-gnu
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+
+          - build: linux-arm64-musl
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+
+          - build: linux-ia32-gnu
+            os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+
+          - build: darwin-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+
+          - build: darwin-x64
+            os: macos-latest
+            target: x86_64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Install Stable Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Run Cargo Test
+        run: cargo llvm-cov --all-features --workspace --exclude lms-wasm --exclude lms-autogen --lcov --output-path lcov.info
+
+      - name: Upload Coverage to Codecov
+        if: matrix.build == 'linux-x64-gnu'
+        uses: Wandalen/wretry.action@v2
+        with:
+          action: codecov/codecov-action@v4
+          attempt_limit: 3
+          attempt_delay: 10000
+          with: |
+            token: ${{ secrets.CODECOV_TOKEN }}
+            files: lcov.info
+            fail_ci_if_error: true

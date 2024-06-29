@@ -1,10 +1,11 @@
 #![no_std]
 extern crate alloc;
 
-mod privkey;
-mod pubkey;
-mod tests;
+use base64::engine::GeneralPurpose;
 
-// type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
-type Bytes = [u8];
+pub mod keystore;
+pub mod privkey;
+pub mod pubkey;
 
+// entire lib will use the standard base64 engine
+pub(crate) const B64_ENGINE: GeneralPurpose = base64::engine::general_purpose::STANDARD;
