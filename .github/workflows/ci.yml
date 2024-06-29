@@ -17,9 +17,6 @@ jobs:
   test_cf:
     name: Run Tests (WASM)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./lms-wasm
 
     steps:
       - uses: actions/checkout@v4
@@ -29,19 +26,10 @@ jobs:
         with:
           target: wasm32-unknown-unknown
 
-      - name: Build WASM
-        run: cargo check --lib --target wasm32-unknown-unknown
-        working-directory: ./lms-wasm
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20.11.0"
-
-      - name: Package Install
-        run: npm install
-
-      - name: Test CF
-        run: npm test
+      - name: Test WASM
+        run: |
+          cargo install wasm-bindgen-cli --vers "0.2.92"
+          wasm-pack test --node
 
   test:
     name: Run Tests on ${{ matrix.build }}
